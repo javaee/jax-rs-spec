@@ -471,7 +471,10 @@ and go to step \ref{find_method} if $M \neq \{\}$.
 
 \newcommand{\bottom}{\perp}
 
-\item If after filtering the set $M$ has more than one element, sort it in descending order as follows. Let a {\em client} media type be of the form $\mbox{$n$/$m$;q=$v_1$}$, a {\em server} media type be of the form $\mbox{$n$/$m$;qs=$v_2$}$ and a {\em combined} media type of the form $\mbox{$n$/$m$;q=$v_1$;qs=$v_2$;d=$v_3$}$, where the distance factor $d$ is defined below. For any of these types, $m$ could be $*$, or $m$ and $n$ could be $*$ and the values of q and qs are assumed to be $1.0$ if absent. 
+\item If after filtering the set $M$ has more than one element, sort it in descending order as follows. First, let us
+define the {\em client} media type and the {\em server} media type as those denoted by the \code{Accept} header in
+a request and the \code{@Produces} annotation on a resource method, respectively.
+Let a client media type be of the form $\mbox{$n$/$m$;q=$v_1$}$, a server media type be of the form $\mbox{$n$/$m$;qs=$v_2$}$ and a {\em combined} media type of the form $\mbox{$n$/$m$;q=$v_1$;qs=$v_2$;d=$v_3$}$, where the distance factor $d$ is defined below. For any of these types, $m$ could be $*$, or $m$ and $n$ could be $*$ and the values of q and qs are assumed to be $1.0$ if absent. 
 
 Let $S(p_1, p_2)$ be defined over a client media type $p_1$ and a server media type $p_2$ as the function that returns the {\em most} specific combined type with a distance factor if $p_1$ and $p_2$ are compatible and $\bottom$ otherwise. For example: 
 \begin{itemize}

@@ -20,3 +20,4 @@ profile
 *.tex~
 *.thm
 *.toc
+spec.synctex.gz
