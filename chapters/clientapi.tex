@@ -142,7 +142,70 @@ Customer c = wt.register(CachingFilter.class).request("application/xml")
 
 In this example, \code{LoggingFilter} is inherited by each instance of \WebTarget\ created from \code{client}; an additional provider named \code{CachingFilter} is registered on the instance of \WebTarget.
 
+\section{Reactive Clients}
+\label{reactive_clients}
 
+Section \ref{client_api_async} introduces asynchronous programming in the Client API. Asynchronous programming in \jaxrs\ enables clients to unblock certain threads by pushing work to background threads which can be monitored and possibly waited on (joined) at a later time. This can be accomplished in \jaxrs\ by either providing an instance of \code{InvocationCallback} or operating on the result of type \code{Future<T>} returned by an asynchronous invoker ---or some combination of both styles. 
 
+Using \code{InvocationCallback} enables a more \emph{reactive} programming style in which user-provided code activates (or reacts) only when a certain event has occurred. Using callbacks works well for simple cases, but the source code becomes harder to understand when multiple events are in play. For example, when asynchronous invocations need to be composed, combined or in any way operated upon. These type of scenarios may result in callbacks that are nested inside other callbacks making the code far less readable ---often referred to as the \emph{pyramid of doom} because of the inherent nesting of calls.
 
+To address the requirement of greater readability and to enable programmers to better reason about asynchronous computations, JDK 8 introduces the a new interface called \code{CompletionStage} that includes a large number of methods dedicated to managing asynchronous computations. 
+
+\jaxrs\ 2.1 defines a new type of invoker called \code{RxInvoker}, as well a default implementation of this type called \code{CompletionStageRxInvoker} that is based on the JDK 8 type \code{CompletionStage}. There is a new \code{rx} method which is used in a similar manner to \code{async} as described in \ref{client_api_async}. Let us consider the following example:
+
+\begin{listing}{1}
+    CompletionStage<String> csf = client.target("forecast/{destination}")
+        .resolveTemplate("destination", "mars")
+        .request()
+        .rx()
+        .get(String.class);
+
+    csf.thenAccept(System.out::println);
+\end{listing}
+
+This example first creates an asynchronous computation of type \code{CompletionStage<String>}, and then a secondary of type \code{CompletationStage<Void>} on the last line; the purpose of the latter one is simply to wait on the former to complete and print its value. 
+
+The value of \code{CompletionStage} becomes apparent when multiple asynchronous computations are necessary to accomplish a task. The following example obtains, in parallel, a price and a forecast for a destination and makes a reservation only if the desired conditions are met. 
+
+\begin{listing}{1}
+	CompletionStage<Number> csp = client.target("price/{destination}")
+        .resolveTemplate("destination", "mars")
+        .request()
+        .rx()
+        .get(Number.class);
+
+	CompletionStage<String> csf = client.target("forecast/{destination}")
+	    .resolveTemplate("destination", "mars")
+	    .request()
+	    .rx()
+	    .get(String.class);
+	
+	csp.thenCombine(csf, (price, forecast) -> 
+	    reserveIfAffordableAndWarm(price, forecast));
+\end{listing}
+
+Note that the \code{Consumer} passed in the call to method \code{thenCombine} requires the values of each stage to be available and, therefore, can only be executed after the two parallel stages are completed. 
+
+As we shall see in the next section, support for \code{CompletableStage} is the \emph{default} for all \jaxrs\ implementations, but other reactive APIs may also be supported as extensions.
+
+\subsection{Reactive API Extensions}
+\label{reactive_api_extensions}
+
+There have been several proposals for reactive APIs in Java. All \jaxrs\ implementations MUST support an invoker for \code{CompletableStage} as shown above. Additionally, \jaxrs\ implementations MAY support other reactive APIs using an extension built into the Client API. 
+
+ReactiveX \cite{rxjava} is a popular reactive library available in Java. The type representing an asynchronous computation in this API is called an \code{Observable}. An implementation may support this type by providing a new invoker as shown in the following example:
+
+\begin{listing}{1}
+	Client client = client.register(ObservableRxInvokerProvider.class);
+	
+	Observable<String> of = client.target("forecast/{destination}")
+	    .resolveTemplate("destination", "mars")
+	    .request()
+	    .rx(ObservableRxInvoker.class)    // overrides default invoker
+	    .get(String.class);
+	
+	of.subscribe(System.out::println);
+\end{listing}
+
+First, a provider for the new invoker must be registered on the \code{Client} object. Second, the type of the invoker must be specified as a parameter to the \code{rx} method. Note that because this is a \jaxrs\ extension, the actual names for the provider and the invoker in the example above are implementation dependent. The reader is referred to the documentation for the \jaxrs\ implementation of choice for more information.
 
