@@ -163,7 +163,7 @@ To address the requirement of greater readability and to enable programmers to b
     csf.thenAccept(System.out::println);
 \end{listing}
 
-This example first creates an asynchronous computation of type \code{CompletionStage<String>}, and then a secondary of type \code{CompletationStage<Void>} on the last line; the purpose of the latter one is simply to wait on the former to complete and print its value. 
+This example first creates an asynchronous computation of type \code{CompletionStage<String>}, and then a secondary of type \code{CompletionStage<Void>} on the last line; the purpose of the latter one is simply to wait on the former to complete and print its value. 
 
 The value of \code{CompletionStage} becomes apparent when multiple asynchronous computations are necessary to accomplish a task. The following example obtains, in parallel, a price and a forecast for a destination and makes a reservation only if the desired conditions are met. 
 
@@ -186,12 +186,12 @@ The value of \code{CompletionStage} becomes apparent when multiple asynchronous 
 
 Note that the \code{Consumer} passed in the call to method \code{thenCombine} requires the values of each stage to be available and, therefore, can only be executed after the two parallel stages are completed. 
 
-As we shall see in the next section, support for \code{CompletableStage} is the \emph{default} for all \jaxrs\ implementations, but other reactive APIs may also be supported as extensions.
+As we shall see in the next section, support for \code{CompletionStage} is the \emph{default} for all \jaxrs\ implementations, but other reactive APIs may also be supported as extensions.
 
 \subsection{Reactive API Extensions}
 \label{reactive_api_extensions}
 
-There have been several proposals for reactive APIs in Java. All \jaxrs\ implementations MUST support an invoker for \code{CompletableStage} as shown above. Additionally, \jaxrs\ implementations MAY support other reactive APIs using an extension built into the Client API. 
+There have been several proposals for reactive APIs in Java. All \jaxrs\ implementations MUST support an invoker for \code{CompletionStage} as shown above. Additionally, \jaxrs\ implementations MAY support other reactive APIs using an extension built into the Client API. 
 
 ReactiveX \cite{rxjava} is a popular reactive library available in Java. The type representing an asynchronous computation in this API is called an \code{Observable}. An implementation may support this type by providing a new invoker as shown in the following example:
 
