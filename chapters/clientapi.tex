@@ -149,7 +149,7 @@ Section \ref{client_api_async} introduces asynchronous programming in the Client
 
 Using \code{InvocationCallback} enables a more \emph{reactive} programming style in which user-provided code activates (or reacts) only when a certain event has occurred. Using callbacks works well for simple cases, but the source code becomes harder to understand when multiple events are in play. For example, when asynchronous invocations need to be composed, combined or in any way operated upon. These type of scenarios may result in callbacks that are nested inside other callbacks making the code far less readable ---often referred to as the \emph{pyramid of doom} because of the inherent nesting of calls.
 
-To address the requirement of greater readability and to enable programmers to better reason about asynchronous computations, JDK 8 introduces the a new interface called \code{CompletionStage} that includes a large number of methods dedicated to managing asynchronous computations. 
+To address the requirement of greater readability and to enable programmers to better reason about asynchronous computations, Java 8 introduces the a new interface called \code{CompletionStage} that includes a large number of methods dedicated to managing asynchronous computations. 
 
 \jaxrs\ 2.1 defines a new type of invoker called \code{RxInvoker}, as well a default implementation of this type called \code{CompletionStageRxInvoker} that is based on the JDK 8 type \code{CompletionStage}. There is a new \code{rx} method which is used in a similar manner to \code{async} as described in \ref{client_api_async}. Let us consider the following example:
 
@@ -163,7 +163,7 @@ To address the requirement of greater readability and to enable programmers to b
     csf.thenAccept(System.out::println);
 \end{listing}
 
-This example first creates an asynchronous computation of type \code{CompletionStage<String>}, and then a secondary of type \code{CompletionStage<Void>} on the last line; the purpose of the latter one is simply to wait on the former to complete and print its value. 
+This example first creates an asynchronous computation of type \code{CompletionStage<String>}, and then simply waits for it to complete and displays its result (technically, a second computation of type \code{CompletionStage<Void>} is created on the last line simply to consume the result of the first computation). 
 
 The value of \code{CompletionStage} becomes apparent when multiple asynchronous computations are necessary to accomplish a task. The following example obtains, in parallel, a price and a forecast for a destination and makes a reservation only if the desired conditions are met. 
 
@@ -193,7 +193,7 @@ As we shall see in the next section, support for \code{CompletionStage} is the \
 
 There have been several proposals for reactive APIs in Java. All \jaxrs\ implementations MUST support an invoker for \code{CompletionStage} as shown above. Additionally, \jaxrs\ implementations MAY support other reactive APIs using an extension built into the Client API. 
 
-ReactiveX \cite{rxjava} is a popular reactive library available in Java. The type representing an asynchronous computation in this API is called an \code{Observable}. An implementation may support this type by providing a new invoker as shown in the following example:
+RxJava \cite{rxjava} is a popular reactive library available in Java. The type representing an asynchronous computation in this API is called an \code{Observable}. An implementation may support this type by providing a new invoker as shown in the following example:
 
 \begin{listing}{1}
 	Client client = client.register(ObservableRxInvokerProvider.class);
@@ -209,3 +209,4 @@ ReactiveX \cite{rxjava} is a popular reactive library available in Java. The typ
 
 First, a provider for the new invoker must be registered on the \code{Client} object. Second, the type of the invoker must be specified as a parameter to the \code{rx} method. Note that because this is a \jaxrs\ extension, the actual names for the provider and the invoker in the example above are implementation dependent. The reader is referred to the documentation for the \jaxrs\ implementation of choice for more information.
 
+Version 2.0 of RxJava \cite{rxjava2} has been completely re-written on top of the Reactive-Streams specification. This new architecture prompted the introduction of a new type called \code{Flowable}. JAX-RS implementations could easily support this new version by implementing a new provider (such as  \code{FlowableRxInvokerProvider}) and using the same pattern shown in the example above.
