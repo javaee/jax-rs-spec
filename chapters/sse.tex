@@ -1,0 +1,112 @@
+\chapter{Server-Sent Events}
+
+\section{Introduction}
+\label{sse_introduction}
+
+Server-sent events (SSE) is a standard originally introduced as part of HTML5 by the W3C, but is currently maintained and evolving as part of the WHATWG \cite{sse}. It provides a way to establish a one-way channel from a server to a client. The connection is long running: it is re-used for multiple events sent from the server, yet it is still based on the HTTP protocol. Clients request the opening of an SSE connection by using the special media type \code{text/event-stream} in the \code{Accept} header.
+
+Events are structured and contain several fields, namely, \code{event}, \code{data}, \code{id}, \code{retry} and \code{comment}. SSE is a messaging protocol where the \code{event} field corresponds to a topic, and where the \code{id} field can be used to validate event order and guarantee continuity. If a connection is interrupted for any reason, the \code{id} can be sent in a request header for a server to re-play past events ---although this is an optional behavior that may not be supported by all implementations. Event payloads are conveyed in the \code{data} field and must be in text format; \code{retry} is used to control re-connects and finally \code{comment} is a general purpose field that can also be used to keep connections alive.
+
+\section{Client API}
+\label{sse_client_api}
+
+The \jaxrs\ client API for SSE was inspired by the corresponding JavaScript API in HTML5, but with differences that originate from the use of a different language as well as the desire to support the Java Flow API from Java 9 --but without introducing a dependency with that version of Java. See \cite{java9flow} for more information on reactive programming using the Flow API in Java 9.
+
+The entry point to the client API is the type \code{SseEventSource}, which provides a fluent builder similarly to other classes in the JAX-RS API. An \code{SseEventSource} is constructed from a \code{WebTarget} that is already configured with a resource location; \code{SseEventSource} does not duplicate any functionality in \code{WebTarget} and only adds the necessary logic for SSE. 
+
+The following example shows how to open an SSE connection and read some messages for a little
+while:
+
+\begin{listing}{1}
+  try (SseEventSource source = SseEventSource.target(target).build()) {
+	source.subscribe(System.out::println);
+	source.open();  
+	Thread.sleep(500); 		// Consume events for just 500 ms 
+  } catch (InterruptedException e) { 
+	// falls through 
+  }
+\end{listing}
+
+As seen in this example, an \code{SseEventSource} implements \code{AutoCloseable}. Before opening the source, the client subscribes to the event stream and registers an event consumer that simply prints each event. Additional handlers for other life-cycle events such as \code{onSubscribe}, \code{onComplete} and \code{onError} are also supported, but for simplicity only \code{onEvent} is shown in the example above.
+
+\code{SseEventSource} class uses the existing \jaxrs\ mechanism based on \code{RuntimeDelegate} in order to find an implementation for a service named \code{javax.ws.rs.sse.SseEventSource.Builder}. 
+
+%% What? 
+%Implementation looks for a default implementaion, which is {{default}}
+
+\section{Server API}
+\label{sse_server_api}
+
+The \jaxrs\ SSE server API is used to accept connections and send events to one or more clients (also known as subscribers). A resource method that injects an \code{SseEventSink} and produces the media type \code{text/event-stream} is an SSE resource method.
+
+The following example accepts SSE connections and uses an executor thread to send 3 events before closing the connection:
+
+\begin{listing}{1}
+@GET 
+@Path("eventStream") 
+@Produces(MediaType.SERVER_SENT_EVENTS) 
+public void eventStream(@Context SseEventSink eventSink, 
+                        @Context Sse sse) {
+  executor.execute(() -> {
+    try (SseEventSink sink = eventSink) {  
+      eventSink.onNext(sse.newEvent("event1"));
+      eventSink.onNext(sse.newEvent("event2"));
+      eventSink.onNext(sse.newEvent("event3"));
+      eventSink.close();
+	} catch (IOException e) { 
+	  // handle exception 
+	}
+  });
+}
+\end{listing}
+
+The SSE resource method follows a similar pattern to resource methods for asynchronous processing. \code{SseEventSink} represents an event stream from a server to a client, the dual of \code{SseEventSource}. It is created when the resource method is invoked and injected as a annotated parameter via \code{@Context}. The example above also injects the \code{Sse} type which provides factory methods for events and broadcasters. See section \ref{sse_broadcasting} for more information about broadcasting. Note that, just like \code{SseEventSource}, the interface \code{SseEventSink} is also auto-closeable, hence the use of the \emph{try-with-resources} statement above.
+
+\section{Broadcasting}
+\label{sse_broadcasting}
+
+Applications may need to send events to multiple clients simultaneously. This action is called \emph{broadcasting} in \jaxrs. Multiple \code{SseEventSink}'s can be registered (or subscribed) on a single \code{SseBroadcaster}. Thus, all \code{SseBroadcaster}'s are also publishers in the sense defined by the Java 9 Flow API (supporting the same methods as \code{Flow.Publisher<T>} but not directly extending that interface to avoid dependencies on Java 9). More precisely, an \code{SseBroadcaster} implements \code{Flow.Publisher<OutboundSseEvent>}.
+
+A broadcaster can only be created by calling method \code{newBroadcaster} on the injected \code{Sse} instance. The life-cycle and scope of an \code{SseBroadcaster} is fully controlled by applications and not the \jaxrs\ runtime. The following example shows the use of broadcasters, note the \code{@Singleton} annotation on the resource class:
+
+\begin{listing}{1}
+@Path("/") 
+@Singleton
+public class SseResource {
+	
+  private final Sse sse;
+  private final SseBroadcaster sseBroadcaster;
+	
+  public SseResource(@Context Sse sse) {
+    this.sse = sse;
+    this.sseBroadcaster = sse.newBroadcaster();
+  }  
+	
+  @GET
+  @Path("subscribe")
+  @Produces(MediaType.SERVER_SENT_EVENTS)
+  public void subscribe(@Context SseEventSink eventSink) {
+    eventSink.onNext(sse.newEvent("welcome!"));
+    sseBroadcaster.subscribe(eventSink);
+  }  
+	
+  @POST
+  @Path("broadcast")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  public void broadcast(@FormParam("event") String event) { 
+    sseBroadcaster.broadcast(sse.newEvent(event));
+  } 
+}
+\end{listing}
+
+The \code{subscribe} method on a broadcaster is used to register a new \code{SseEventSink}; the
+\code{broadcast} method is used to send an SSE event to all registered subscribers.
+
+\section{Asynchronous Environment}
+\label{sse_async_environment}
+
+TODO 
+%% This statement is vague. Is this a requirement on implementations?
+%All method invoked on provided subscribers (represented as set of lambda methods) are invoked on an ExecutorService best suited for given environment. That would be ManagedExecutorService on Java EE compliant container, ForkJoinPool.commonPool() on Java SE, etc.
+
+%Also, all objects, injected or returned from the Sse class instance, are thread safe, meaning that they can be called from various threads and their internal state won't get into inconsistent state.
