@@ -152,7 +152,7 @@ Using \code{InvocationCallback} enables a more \emph{reactive} programming style
 To address the requirement of greater readability and to enable programmers to better reason about asynchronous computations, Java 8 introduces the a new interface called \code{CompletionStage} that includes a large number of methods dedicated to managing asynchronous computations. 
 
 \jaxrs\ 2.1 defines a new type of invoker called \code{RxInvoker}, as well a default implementation of this type called \code{CompletionStageRxInvoker} that is based on the JDK 8 type \code{CompletionStage}. There is a new \code{rx} method which is used in a similar manner to \code{async} as described in \ref{client_api_async}. Let us consider the following example:
-
+e
 \begin{listing}{1}
     CompletionStage<String> csf = client.target("forecast/{destination}")
         .resolveTemplate("destination", "mars")
@@ -210,3 +210,11 @@ RxJava \cite{rxjava} is a popular reactive library available in Java. The type r
 First, a provider for the new invoker must be registered on the \code{Client} object. Second, the type of the invoker must be specified as a parameter to the \code{rx} method. Note that because this is a \jaxrs\ extension, the actual names for the provider and the invoker in the example above are implementation dependent. The reader is referred to the documentation for the \jaxrs\ implementation of choice for more information.
 
 Version 2.0 of RxJava \cite{rxjava2} has been completely re-written on top of the Reactive-Streams specification. This new architecture prompted the introduction of a new type called \code{Flowable}. JAX-RS implementations could easily support this new version by implementing a new provider (such as  \code{FlowableRxInvokerProvider}) and using the same pattern shown in the example above.
+
+\section{Executor Services}
+\label{executor_services}
+
+Executor services can be used to submit asynchronous tasks for execution. \jaxrs\ applications can specify executor services while building a \code{Client} instance. Two methods are provided in \code{ClientBuilder} for this purpose, namely, \code{executorService} and \code{scheduledExecutorService}. 
+
+The default executor service depends on the environment. In Java SE, the default executor service is provided by method \code{commonPool} in class \code{ForkJoin}; in Java EE, by instances of \code{ManagedExecutorService} and \code{ManagedScheduledExecutorService} provided by the container. The reader is referred to the Javadoc of \code{ClientBuilder} for more information about executor services.
+
