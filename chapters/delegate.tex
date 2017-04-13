@@ -16,10 +16,10 @@ A \jaxrs\ implementation may rely on a particular implementation of \rd\ being u
 
 \section{Configuration}\label{rdconfig}
 
-If not supplied by injection, the supplied \rd\ API class obtains the concrete implementation class using the following algorithm. The steps listed below 
-are performed in sequence and, at each step, at most one candidate implementation class name will be produced. The implementation will then attempt to load the class with the given class name using the current context class loader or, missing one, the java.lang.Class.forName(String) method. As soon as a step results in an implementation class being successfully loaded, the algorithm terminates.
+If not supplied by injection, the supplied \rd\ API class obtains the concrete implementation class using the following algorithm. The steps listed below are performed in sequence and, at each step, at most one candidate implementation class name will be produced. The implementation will then attempt to load the class with the given class name using the current context class loader or, missing one, the \code{java.lang.Class.forName(String)} method. As soon as a step results in an implementation class being successfully loaded, the algorithm terminates.
 \begin{enumerate}
-\item If a resource with the name of \code{META-INF/services/javax.ws.rs.ext.RuntimeDelegate} exists, then its first line, if present, is used as the UTF-8 encoded name of the implementation class. 
+\item Use the Java SE class \code{java.util.ServiceLoader} to attempt to load an implementation from \code{META-INF\-/services/javax.ws.rs.ext.RuntimeDelegate}. Note that this may require more than one call to method \code{ServiceLoader.load(Class, ClassLoader)} in order to try both the context class loader and the current class loader as explained above
+\footnote{Earlier versions of \jaxrs\ did not mandate the use \code{ServiceLoader}. This backward-compatible change that started in \jaxrs\ 2.1 is to ensure forward compatibility with the Java SE 9 module system.}.
 \item If the \code{\$\{java.home\}/lib/jaxrs.properties} file exists and it is readable by the \code{java\-.util\-.Properties\-.load(\-InputStream)} method and it contains an entry whose key is \code{javax\-.ws\-.rs\-.ext\-.Runtime\-Delegate}, then the value of that entry is used as the name of the implementation class. 
 \item If a system property with the name \code{javax\-.ws\-.rs\-.ext\-.Runtime\-Delegate} is defined, then its value is used as the name of the implementation class. 
 \item Finally, a default implementation class name is used. 
