@@ -19,7 +19,7 @@ while:
 \begin{listing}{1}
   WebTarget target = client.target("http://...");
   try (SseEventSource source = SseEventSource.target(target).build()) {
-	source.subscribe(System.out::println);
+	source.register(System.out::println);
 	source.open();  
 	Thread.sleep(500); 		// Consume events for just 500 ms 
   } catch (InterruptedException e) { 
@@ -27,7 +27,7 @@ while:
   }
 \end{listing}
 
-As seen in this example, an \code{SseEventSource} implements \code{AutoCloseable}. Before opening the source, the client subscribes to the event stream and registers an event consumer that simply prints each event. Additional handlers for other life-cycle events such as \code{onSubscribe}, \code{onComplete} and \code{onError} are also supported, but for simplicity only \code{onEvent} is shown in the example above.
+As seen in this example, an \code{SseEventSource} implements \code{AutoCloseable}. Before opening the source, the client registers an event consumer that simply prints each event. Additional handlers for other life-cycle events such as \code{onSubscribe}, \code{onComplete} and \code{onError} are also supported, but for simplicity only \code{onEvent} is shown in the example above.
 
 \section{Server API}
 \label{sse_server_api}
@@ -70,12 +70,13 @@ A broadcaster can only be created by calling method \code{newBroadcaster} on the
 @Singleton
 public class SseResource {
 	
-  private final Sse sse;
-  private final SseBroadcaster sseBroadcaster;
+  @Context
+  private Sse sse;
+  
+  private volatile SseBroadcaster sseBroadcaster;
 	
-  @Inject
-  public SseResource(Sse sse) {
-    this.sse = sse;
+  @PostConstruct
+  public init() {
     this.sseBroadcaster = sse.newBroadcaster();
   }  
 	
@@ -97,7 +98,7 @@ public class SseResource {
 \end{listing}
 
 The \code{register} method on a broadcaster is used to add a new \code{SseEventSink}; the
-\code{broadcast} method is used to send an SSE event to all registered subscribers.
+\code{broadcast} method is used to send an SSE event to all registered consumers.
 
 \section{Environment}
 \label{sse_environment}
