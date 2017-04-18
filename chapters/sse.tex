@@ -27,7 +27,7 @@ while:
   }
 \end{listing}
 
-As seen in this example, an \code{SseEventSource} implements \code{AutoCloseable}. Before opening the source, the client registers an event consumer that simply prints each event. Additional handlers for other life-cycle events such as \code{onSubscribe}, \code{onComplete} and \code{onError} are also supported, but for simplicity only \code{onEvent} is shown in the example above.
+As seen in this example, an \code{SseEventSource} implements \code{AutoCloseable}. Before opening the source, the client registers an event consumer that simply prints each event. Additional handlers for other life-cycle events such as \code{onComplete} and \code{onError} are also supported, but for simplicity only \code{onEvent} is shown in the example above.
 
 \section{Server API}
 \label{sse_server_api}
