@@ -124,7 +124,8 @@ In a product that supports the Bean Validation specification \cite{bv11}, implem
 \subsection{Java API for JSON Processing}
 \label{jsonp}
 
-In a product that supports the Java API for JSON Processing (JSON-P) \cite{jsonp}, implementations MUST support entity providers for the following types: \code{JsonStructure}, \code{JsonObject} and \code{JsonArray}. Therefore, the standard set of entity providers from Section~\ref{standard_entity_providers} is extended to support these types in combinations with the \code{application/json} media type.
+In a product that supports the Java API for JSON Processing (JSON-P) \cite{jsonp}, implementations MUST support entity providers for \code{JsonValue} and all of its sub-types:
+\code{JsonStructure}, \code{JsonObject}, \code{JsonArray}, \code{JsonString} and \code{JsonNumber}. Therefore, the standard set of entity providers from Section~\ref{standard_entity_providers} is extended to support these types in combinations with the \code{application/json} media type.
 
 Note that other types from the JSON-P API such as \code{JsonParser}, \code{JsonGenerator}, \code{JsonReader} and \code{JsonWriter} can also be integrated into JAX-RS applications using the entity providers for \code{InputStream} and \code{StreamingOutput}. 
 
