@@ -11,6 +11,9 @@ Asynchronous processing is a technique that enables a better and more efficient 
 \section{Server API}
 \label{server_api}
 
+\subsection{AsyncResponse}
+\label{async_response}
+
 Synchronous processing requires a resource method to produce a response upon returning control back to the JAX-RS implementation. Asynchronous processing enables a resource method to inform the JAX-RS implementation that a response is not readily available upon return but will be produced at a future time. This can be accomplished by first {\em suspending} and later {\em resuming} the client connection on which the request was received. 
 
 Let us illustrate these concepts via an example:
@@ -26,7 +29,8 @@ public class MyResource {
                 public void run() {
                     executeLongRunningOp();
                     ar.resume("Hello async world!");
-        } });
+                } 
+            });
     } 
     ...
 }
@@ -36,7 +40,7 @@ A resource method that elects to produce a response asynchronously must inject a
 
 For more information on executors, concurrency and thread management in a Java EE environment, the reader is referred to JSR 236 \cite{concurrencyee}. For more information about executors in the \jaxrs\ Client API see Section \ref{executor_services}.
 
-\subsection{Timeouts and Callbacks}
+\subsubsection{Timeouts and Callbacks}
 \label{timeouts_and_callbacks}
 
 A timeout value can be specified when suspending a connection to avoid waiting for a response indefinitely. The default unit is milliseconds, but any unit of type \code{java.util.concurrent.TimeUnit} can be used. The following example sets a timeout of 15 seconds and registers an instance of \code{TimeoutHandler} in case the timeout is reached before the connection is resumed.
@@ -59,7 +63,8 @@ A timeout value can be specified when suspending a connection to avoid waiting f
                 public void run() {
                     executeLongRunningOp();
                     ar.resume("Hello async world!");
-        } });
+                } 
+            });
     }
 \end{listing}
 
@@ -67,6 +72,32 @@ A timeout value can be specified when suspending a connection to avoid waiting f
 
 It is also possible to register callbacks on an instance of \code{AsyncResponse} in order to listen for processing completion (\code{CompletionCallback}) and connection termination (\code{ConnectionCallback}) events. See Javadoc for \code{AsyncResponse} for more information on how to register these callbacks. Note that support for \code{ConnectionCallback} is OPTIONAL.
 
+\subsection{CompletionStage}
+\label{completionstage}
+
+An alternative approach to the injection of \code{AsyncResponse} is for a resource method to return an instance of \code{CompletionStage<T>} as an indication to the underlying \jaxrs\ implementation that asynchronous processing is enabled. The example from Section \ref{async_response} can be re-written using \code{CompletionStage} as follows:
+
+\begin{listing}{1}
+	@Path("/async/longRunning")
+	public class MyResource {
+		
+		@GET
+		public CompletionStage<String> longRunningOp() {
+			CompletableFuture<String> cs = new CompletableFuture<>();
+			executor.submit(
+			    new Runnable() {
+				    public void run() {
+					    executeLongRunningOp();
+					    cs.complete("Hello async world!");
+		  	        } 
+	  	        });
+	  	    return cs;
+		} 
+		...
+	}
+\end{listing}
+
+In this example, a \code{CompletableFuture} instance is created and returned in the resource method; the call to method \code{complete} on that instance is executed only after the long running operation terminates.
 
 \section{EJB Resource Classes}
 \label{async_ejbs}
