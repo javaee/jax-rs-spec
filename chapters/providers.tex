@@ -1,7 +1,9 @@
 \chapter{Providers}
 \label{providers}
 
-The \jaxrs\ runtime is extended using application-supplied provider classes. A provider is a class that implements one or more \jaxrs\ interfaces introduced in this specification and that may be annotated with \Provider\ for automatic discovery. This chapter introduces some of the basic \jaxrs\ providers; other providers are introduced in Chapter \ref{client_api} and Chapter \ref{filters_and_interceptors}.
+Providers in \jaxrs\ are responsible for various cross-cutting concerns such as filtering requests, converting representations into Java objects, mapping exceptions to responses, etc. A provider can be either \emph{pre-packaged} in the \jaxrs\ runtime or supplied by an application. All \emph{application-supplied} providers implement interfaces in the \jaxrs\ API and MAY be annotated with \Priority\ for automatic discovery purposes; the integration of pre-packaged providers into the \jaxrs\ runtime is implementation dependent.
+
+This chapter introduces some of the basic \jaxrs\ providers; other providers are introduced in Chapter \ref{client_api} and Chapter \ref{filters_and_interceptors}.
 
 \section{Lifecycle and Environment}
 \label{lifecycle_and_environment}
@@ -22,6 +24,15 @@ Provider classes that are instantiated by the \jaxrs\ runtime and MUST have a pu
 
 A public constructor MAY include parameters annotated with \Context ---Chapter \ref{context} defines the parameter types permitted for this annotation. Since providers may be created outside the scope of a particular request, only deployment-specific properties may be available from injected interfaces at construction time; request-specific properties are available when a provider method is called. If more than one public constructor can be used then an implementation MUST use the one with the most parameters. Choosing amongst constructors with the same number of parameters is implementation specific, implementations SHOULD generate a warning about such ambiguity.
 
+\subsection{Priorities}
+\label{provider_priorities}
+
+Application-supplied providers enable developers to extend and customize the \jaxrs\ runtime. Therefore, an application-supplied provider MUST always be preferred over a pre-packaged one if a single one is required.
+
+Application-supplied providers may be annotated with \Priority. If two or more providers are candidates for a certain task, the one with the \emph{highest} priority is chosen: the highest priority is defined to be the one with the \emph{lowest} value in this case. That is, \code{@Priority(1)} is higher than \code{@Priority(10)}. If two or more providers are eligible and have identical priorities, one is chosen in an implementation dependent manner. The default priority for all providers is \code{javax.ws.rs.Priorities.USER}. 
+
+The general rule about provider priorities is different for filters and interceptors since they collected into chains. For more information see Section \ref{priorities}.
+
 \section{Entity Providers}
 \label{entity_providers}
 
@@ -39,7 +50,7 @@ The following describes the logical\footnote{Implementations are free to optimiz
 \item Identify the Java type of the parameter whose value will be mapped from the entity body. Section \ref{mapping_requests_to_java_methods} describes how the Java method is chosen.
 \item Select the set of \MsgRead\ classes that support the media type of the request, see Section \ref{declaring_provider_capabilities}.
 \item\label{findreader} Iterate through the selected \MsgRead\ classes and, utilizing the \code{isReadable} method of each, choose a \MsgRead\ provider that supports the desired Java type.
-\item If step \ref{findreader} locates a suitable \MsgRead\ then use its \code{readFrom} method to map the entity body to the desired Java type.
+\item If step \ref{findreader} locates one or more suitable \MsgRead's\ then select the one with the highest priority as described in Section \ref{provider_priorities} and use its \code{readFrom} method to map the entity body to the desired Java type.
 \item Otherwise, the server runtime MUST generate a \code{NotSupportedException} (415 status) and no entity (to be processed as described in Section \ref{method_exc}) and the client runtime MUST generate an instance of \code{ProcessingException}.
 \end{enumerate}
 
@@ -58,7 +69,7 @@ The following describes the logical steps taken by a \jaxrs\ implementation when
 \item Select the set of \MsgWrite\ providers that support (see Section \ref{declaring_provider_capabilities}) the object and media type of the message entity body.
 \item\label{item_sort} Sort the selected \MsgWrite\ providers with a primary key of generic type where providers whose generic type is the nearest superclass of the object class are sorted first and a secondary key of media type (see Section \ref{declaring_provider_capabilities}).
 \item\label{findwriter} Iterate through the sorted \MsgWrite\ providers and, utilizing the \code{isWriteable} method of each, choose an \MsgWrite\ that supports the object that will be mapped to the entity body.
-\item If step \ref{findwriter} locates a suitable \MsgWrite\ then use its \code{writeTo} method to map the object to the entity body. 
+\item If step \ref{findwriter} locates one or more suitable \MsgWrite's\ that are equal with respect to the sorting in step \ref{item_sort}, then select the one with the highest priority as described in Section \ref{provider_priorities} and use its \code{writeTo} method to map the entity body to the desired Java type.
 \item Otherwise, the server runtime MUST generate a generate an \code{InternalServerErrorException}, a subclass of \WebAppExc\ with its status set to 500, and no entity (to be processed as described in Section \ref{method_exc}) and the client runtime MUST generate a \code{ProcessingException}.
 
 \end{enumerate}
@@ -138,9 +149,11 @@ When choosing a context provider an implementation sorts the available providers
 \section{Exception Mapping Providers}
 \label{exceptionmapper}
 
-Exception mapping providers map a checked or runtime exception to an instance of \Response. An exception mapping provider implements the \code{ExceptionMapper<T>} interface and may be annotated with \Provider\ for automatic discovery. When choosing an exception mapping provider to map an exception, an implementation MUST use the provider whose generic type is the nearest superclass of the exception.
+Exception mapping providers map a checked or runtime exception to an instance of \Response. An exception mapping provider implements the \code{ExceptionMapper<T>} interface and may be annotated with \Provider\ for automatic discovery. 
 
 When a resource class or provider method throws an exception for which there is an exception mapping provider, the matching provider is used to obtain a \Response\ instance. The resulting \Response\ is processed as if a web resource method had returned the \Response, see Section \ref{resource_method_return}. In particular, a mapped \Response\ MUST be processed using the ContainerResponse filter chain defined in  Chapter~\ref{filters_and_interceptors}.
+
+When choosing an exception mapping provider to map an exception, an implementation MUST use the provider whose generic type is the nearest superclass of the exception. If two or more exception providers are applicable, the one with the highest priority MUST be chosen as described in Section \ref{provider_priorities}.
 
 To avoid a potentially infinite loop, a single exception mapper must be used during the processing of a request and its corresponding response. \jaxrs\ implementations MUST NOT attempt to map exceptions thrown while processing a response previously mapped from an exception. Instead, this exception MUST be processed as described in steps \ref{runtimeexc} and \ref{checkedexc} in Section \ref{method_exc}.
 
