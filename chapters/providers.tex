@@ -1,7 +1,7 @@
 \chapter{Providers}
 \label{providers}
 
-Providers in \jaxrs\ are responsible for various cross-cutting concerns such as filtering requests, converting representations into Java objects, mapping exceptions to responses, etc. A provider can be either \emph{pre-packaged} in the \jaxrs\ runtime or supplied by an application. All \emph{application-supplied} providers implement interfaces in the \jaxrs\ API and MAY be annotated with \Priority\ for automatic discovery purposes; the integration of pre-packaged providers into the \jaxrs\ runtime is implementation dependent.
+Providers in \jaxrs\ are responsible for various cross-cutting concerns such as filtering requests, converting representations into Java objects, mapping exceptions to responses, etc. A provider can be either \emph{pre-packaged} in the \jaxrs\ runtime or supplied by an application. All \emph{application-supplied} providers implement interfaces in the \jaxrs\ API and MAY be annotated with \Provider\ for automatic discovery purposes; the integration of pre-packaged providers into the \jaxrs\ runtime is implementation dependent.
 
 This chapter introduces some of the basic \jaxrs\ providers; other providers are introduced in Chapter \ref{client_api} and Chapter \ref{filters_and_interceptors}.
 
