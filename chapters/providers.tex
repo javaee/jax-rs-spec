@@ -29,7 +29,7 @@ A public constructor MAY include parameters annotated with \Context ---Chapter \
 
 Application-supplied providers enable developers to extend and customize the \jaxrs\ runtime. Therefore, an application-supplied provider MUST always be preferred over a pre-packaged one if a single one is required.
 
-Application-supplied providers may be annotated with \Priority. If two or more providers are candidates for a certain task, the one with the \emph{highest} priority is chosen: the highest priority is defined to be the one with the \emph{lowest} value in this case. That is, \code{@Priority(1)} is higher than \code{@Priority(10)}. If two or more providers are eligible and have identical priorities, one is chosen in an implementation dependent manner. The default priority for all providers is \code{javax.ws.rs.Priorities.USER}. 
+Application-supplied providers may be annotated with \Priority. If two or more providers are candidates for a certain task, the one with the \emph{highest} priority is chosen: the highest priority is defined to be the one with the \emph{lowest} value in this case. That is, \code{@Priority(1)} is higher than \code{@Priority(10)}. If two or more providers are eligible and have identical priorities, one is chosen in an implementation dependent manner. The default priority for all application-supplied providers is \code{javax.ws.rs.Priorities.USER}. 
 
 The general rule about priorities is different for filters and interceptors since these providers are collected into chains. For more information see Section \ref{priorities}.
 
