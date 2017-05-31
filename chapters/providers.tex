@@ -109,7 +109,7 @@ types of the form \code{application/*+xml}).
 \item[\code{java.lang.Boolean}, \code{java.lang.Character}, \code{java.lang.Number} \label{primitive_types}] Only for \code{text/plain}. Corresponding primitive types supported via boxing/unboxing conversion.
 \end{description}
 
-Depending on the environment, the list of standard entity providers MUST also include those for media type \code{application/json}. For more information about these providers see Sections \ref{jsonp} and \ref{jsonb}.
+Depending on the environment, the list of standard entity providers MUST also include those for JSON. For more information about these providers see Sections \ref{jsonp} and \ref{jsonb}.
 
 When reading zero-length message entities all pre-packaged \MsgRead\ implementations, except the JAXB one and those for the (boxed) primitive types above, MUST create a corresponding Java object that represents zero-length data. The pre-packaged JAXB and the pre-packaged primitive type \MsgRead\ implementations MUST throw a \code{NoContentException} for zero-length message entities. 
 

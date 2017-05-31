@@ -132,7 +132,7 @@ Note that other types from the JSON-P API such as \code{JsonParser}, \code{JsonG
 \subsection{Java API for JSON Binding}
 \label{jsonb}
 In a product that supports the Java API for JSON Binding (JSON-B) \cite{jsonb}, 
-implementations MUST support entity providers for all Java types supported by JSON-B in combination with the \code{application/json} media type.
+implementations MUST support entity providers for all Java types supported by JSON-B in combination with the following media types: \code{application/json}, \code{text/json} as well as any other media types matching \code{*/json} or \code{*/*+json}. 
 
 Note that if JSON-B and JSON-P are both supported in the same environment, entity providers for JSON-B take precedence over those for JSON-P for all types except \code{JsonValue} and its sub-types.
 
