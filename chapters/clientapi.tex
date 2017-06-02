@@ -154,13 +154,13 @@ To address the requirement of greater readability and to enable programmers to b
 \jaxrs\ 2.1 defines a new type of invoker called \code{RxInvoker}, as well a default implementation of this type called \code{CompletionStageRxInvoker} that is based on the JDK 8 type \code{CompletionStage}. There is a new \code{rx} method which is used in a similar manner to \code{async} as described in \ref{client_api_async}. Let us consider the following example:
 
 \begin{listing}{1}
-    CompletionStage<String> csf = client.target("forecast/{destination}")
-        .resolveTemplate("destination", "mars")
-        .request()
-        .rx()
-        .get(String.class);
+CompletionStage<String> csf = client.target("forecast/{destination}")
+    .resolveTemplate("destination", "mars")
+    .request()
+    .rx()
+    .get(String.class);
 
-    csf.thenAccept(System.out::println);
+csf.thenAccept(System.out::println);
 \end{listing}
 
 This example first creates an asynchronous computation of type \code{CompletionStage<String>}, and then simply waits for it to complete and displays its result (technically, a second computation of type \code{CompletionStage<Void>} is created on the last line simply to consume the result of the first computation). 
@@ -168,20 +168,20 @@ This example first creates an asynchronous computation of type \code{CompletionS
 The value of \code{CompletionStage} becomes apparent when multiple asynchronous computations are necessary to accomplish a task. The following example obtains, in parallel, a price and a forecast for a destination and makes a reservation only if the desired conditions are met. 
 
 \begin{listing}{1}
-	CompletionStage<Number> csp = client.target("price/{destination}")
-        .resolveTemplate("destination", "mars")
-        .request()
-        .rx()
-        .get(Number.class);
+CompletionStage<Number> csp = client.target("price/{destination}")
+    .resolveTemplate("destination", "mars")
+    .request()
+    .rx()
+    .get(Number.class);
 
-	CompletionStage<String> csf = client.target("forecast/{destination}")
-	    .resolveTemplate("destination", "mars")
-	    .request()
-	    .rx()
-	    .get(String.class);
+CompletionStage<String> csf = client.target("forecast/{destination}")
+    .resolveTemplate("destination", "mars")
+    .request()
+    .rx()
+    .get(String.class);
 	
-	csp.thenCombine(csf, (price, forecast) -> 
-	    reserveIfAffordableAndWarm(price, forecast));
+csp.thenCombine(csf, (price, forecast) -> 
+    reserveIfAffordableAndWarm(price, forecast));
 \end{listing}
 
 Note that the \code{Consumer} passed in the call to method \code{thenCombine} requires the values of each stage to be available and, therefore, can only be executed after the two parallel stages are completed. 
@@ -196,15 +196,15 @@ There have been several proposals for reactive APIs in Java. All \jaxrs\ impleme
 RxJava \cite{rxjava} is a popular reactive library available in Java. The type representing an asynchronous computation in this API is called an \code{Observable}. An implementation may support this type by providing a new invoker as shown in the following example:
 
 \begin{listing}{1}
-	Client client = client.register(ObservableRxInvokerProvider.class);
+Client client = client.register(ObservableRxInvokerProvider.class);
 	
-	Observable<String> of = client.target("forecast/{destination}")
-	    .resolveTemplate("destination", "mars")
-	    .request()
-	    .rx(ObservableRxInvoker.class)    // overrides default invoker
-	    .get(String.class);
+Observable<String> of = client.target("forecast/{destination}")
+    .resolveTemplate("destination", "mars")
+    .request()
+    .rx(ObservableRxInvoker.class)    // overrides default invoker
+    .get(String.class);
 	
-	of.subscribe(System.out::println);
+of.subscribe(System.out::println);
 \end{listing}
 
 First, a provider for the new invoker must be registered on the \code{Client} object. Second, the type of the invoker must be specified as a parameter to the \code{rx} method. Note that because this is a \jaxrs\ extension, the actual names for the provider and the invoker in the example above are implementation dependent. The reader is referred to the documentation for the \jaxrs\ implementation of choice for more information.
