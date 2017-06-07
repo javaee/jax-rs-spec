@@ -151,7 +151,7 @@ Using \code{InvocationCallback} enables a more \emph{reactive} programming style
 
 To address the requirement of greater readability and to enable programmers to better reason about asynchronous computations, Java 8 introduces the a new interface called \code{CompletionStage} that includes a large number of methods dedicated to managing asynchronous computations. 
 
-\jaxrs\ 2.1 defines a new type of invoker called \code{RxInvoker}, as well a default implementation of this type called \code{CompletionStageRxInvoker} that is based on the JDK 8 type \code{CompletionStage}. There is a new \code{rx} method which is used in a similar manner to \code{async} as described in \ref{client_api_async}. Let us consider the following example:
+\jaxrs\ 2.1 defines a new type of invoker called \code{RxInvoker}, as well a default implementation of this type called \code{CompletionStageRxInvoker} that is based on the Java 8 type \code{CompletionStage}. There is a new \code{rx} method which is used in a similar manner to \code{async} as described in \ref{client_api_async}. Let us consider the following example:
 
 \begin{listing}{1}
 CompletionStage<String> csf = client.target("forecast/{destination}")
