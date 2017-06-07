@@ -65,7 +65,7 @@ The following are non-goals:
 
 \begin{description}
 
-\item[Support for Java versions prior to J2SE 8.0] The API will make extensive use of annotations and lambda expressions that require J2SE 8.0 or later.
+\item[Support for Java versions prior to Java SE 8] The API will make extensive use of annotations and lambda expressions that require Java SE 8 or later.
 
 \item[Description, registration and discovery] The specification will neither define nor require any service description, registration or discovery capability.
 
@@ -113,7 +113,7 @@ This is a note.
 \item[Sub-resource locator] A method of a {\em resource class} that is used to locate sub-resources of the corresponding resource, see Section \ref{sub_resources}.
 \item[Sub-resource method] A method of a {\em resource class} that is used to handle requests on a sub-resource of the corresponding resource, see Section \ref{sub_resources}.
 \item[Provider] An implementation of a \jaxrs\ extension interface. Providers extend the capabilities of a \jaxrs\ runtime and are described in Chapter \ref{providers}.
-\item[Filter] A provider used for filtering request and responses.
+\item[Filter] A provider used for filtering requests and responses.
 \item[Entity Interceptor] A provider used for intercepting calls to message body readers and writers.
 \item[Invocation] A Client API object that can be configured to issue an HTTP request.
 \item[WebTarget] The recipient of an Invocation, identified by a URI.
@@ -127,25 +127,33 @@ This is a note.
 This specification is being developed as part of JSR 370 under the Java Community Process. It is the result of the collaborative work of the members of the JSR 370 Expert Group. The following are the present expert group members:
 
 \begin{list}{$-$}{\parsep 0em \labelwidth 0em}
-\item Jan Algermissen (Individual Member)
-\item Florent Benoit (OW2)
-\item Sergey Beryozkin (Talend) 
+\item Sergey Beryozkin (Talend SA) 
 \item Adam Bien (Individual Member) 
-\item Bill Burke (Red Hat Middleware LLC) 
-\item Clinton Combs (Individual Member) 
-\item Bill De Hora (Individual Member)  
-\item Markus Karg (Individual Member) 
-\item Sastri Malladi (Ebay) 
+\item Sebastian Dashner (Individual Member)
+\item Markus Karg (Individual Member)
+\item Casey Lee (Vision Service Plan)
+\item Marcos Luna (Individual Member)
 \item Andy McCright (IBM)
 \item Julian Reschke (Individual Member)
-\item Guilherme Silveira (Individual Member) 
-\item Dionysios Synodinos (Individual Member)
+\item Alessio Soldano (Red Hat) 
 \end{list}
 
 The following are former group members of the JSR 339 Expert Group:
 
 \begin{list}{$-$}{\parsep 0em \labelwidth 0em}
-\item Tony Ng (Ebay)
+\item Jan Algermussen (Individual Member)
+\item Florent Beniot (OW2)
+\item Sergey Beryozkin (Talend SA) 
+\item Adam Bien (Individual Member)
+\item Bill Burke (Red Hat)
+\item Clinton L. Combs (Individual Member)
+\item Jian Wu Dai (IBM)
+\item Bill De Hora (Individual Member)
+\item Markus Karg (Individual Member)
+\item Sastry Malladi (eBay, Inc)
+\item Julian Reschke (Individual Member)
+\item Guilherme de Azevedo Silveira (Individual Member)
+\item Synodinos, Dionysios G. (Individual Member)
 \end{list}
 
 JAX-RS 1.X has been developed as part of JSR 311 under the Java Community Process. The following were group members of the JSR 311 Expert Group:
