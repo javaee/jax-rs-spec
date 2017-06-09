@@ -221,11 +221,14 @@ public class WidgetsResource {
 \subsection{Sub Resources}
 \label{sub_resources}
 
-Methods of a resource class that are annotated with \Path\ are either sub-resource methods or sub-resource locators. Sub-resource methods handle a HTTP request directly whilst sub-resource locators return an object that will handle a HTTP request. The presence or absence of a request method designator (e.g. @GET) differentiates between the two:
+Methods of a resource class that are annotated with \Path\ are either sub-resource methods or sub-resource locators. Sub-resource methods handle a HTTP request directly whilst sub-resource locators return an object or class that will handle a HTTP request. The presence or absence of a request method designator (e.g. @GET) differentiates between the two:
 
 \begin{description}
 \item[Present] Such methods, known as {\em sub-resource methods}, are treated like a normal resource method (see Section \ref{resource_method}) except the method is only invoked for request URIs that match a URI template created by concatenating the URI template of the resource class with the URI template of the method\footnote{If the resource class URI template does not end with a \lq/\rq\ character then one is added during the concatenation.}.
-\item[Absent] Such methods, known as {\em sub-resource locators}, are used to dynamically resolve the object that will handle the request. Any returned object is treated as a resource class instance and used to either handle the request or to further resolve the object that will handle the request, see \ref{mapping_requests_to_java_methods} for further details. An implementation MUST dynamically determine the class of object returned rather than relying on the static sub-resource locator return type since the returned instance may be a subclass of the declared type with potentially different annotations, see Section \ref{annotationinheritance} for rules on annotation inheritance. Sub-resource locators may have all the same parameters as a normal resource method (see Section \ref{resource_method}) except that they MUST NOT have an entity parameter. 
+
+\item[Absent] Such methods, known as {\em sub-resource locators}, are used to dynamically resolve the object that will handle the request. Sub-resource locators can return objects or classes; if a class is returned then an object is obtained by the implementation using a {\em suitable} constructor as described in Section \ref{resource_class_constructor}. In either case, the resulting object is used to handle the request or to further resolve the object that will handle the request, see \ref{mapping_requests_to_java_methods} for further details. 
+
+When an object is returned, implementations MUST dynamically determine its class rather than relying on the static sub-resource locator return type, since the returned instance may be a subclass of the declared type with potentially different annotations, see Section \ref{annotationinheritance} for rules on annotation inheritance. Sub-resource locators may have all the same parameters as a normal resource method (see Section \ref{resource_method}) except that they MUST NOT have an entity parameter. 
 \end{description}
 
 The following example illustrates the difference:
