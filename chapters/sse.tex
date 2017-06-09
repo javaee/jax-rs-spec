@@ -100,6 +100,13 @@ public class SseResource {
 The \code{register} method on a broadcaster is used to add a new \code{SseEventSink}; the
 \code{broadcast} method is used to send an SSE event to all registered consumers.
 
+\section{Processing Pipeline}
+\label{sse_pipeline}
+
+Connections from SSE clients are represented by injectable instances of \code{SseEventSink}. There are some similarities between SSE and asynchronous processing (see Chapter \ref{asynchronous_processing}). Asynchronous responses can be resumed at most once while an \code{SseEventSink} can be used multiple times to stream individual events. 
+
+For compatibility purposes, implementations MUST initiate processing of an SSE response when either the first message is sent or when the resource method returns, whichever happens first. The initial SSE response, which may only include the HTTP headers, is processed using the standard \jaxrs\ pipeline as described in Appendix \ref{processing_pipeline}. Each subsequent SSE event may include a different payload and thus require the use of a specific message body writer. Note that since this use case differs slightly from the normal \jaxrs\ pipeline, implementations SHOULD NOT call entity interceptors on each individual event \footnote{As a matter of fact, there is no API to bind entity interceptors to individual SSE events.}.
+
 \section{Environment}
 \label{sse_environment}
 
