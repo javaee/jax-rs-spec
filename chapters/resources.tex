@@ -301,7 +301,7 @@ An implementation MUST NOT invoke a method whose effective value of \Produces\ d
 
 When accepting multiple media types, clients may indicate preferences by using a relative quality factor known as the q parameter. The value of the q parameter, or q-value, is used to sort the set of accepted types. For example, a client may indicate preference for \code{application/widgets+xml} with a relative quality factor of 1 and for \code{application/xml} with a relative quality factor of 0.8. Q-values range from 0 (undesirable) to 1 (highly desirable), with 1 used as default when omitted. A \code{GET} request matched to the \code{WidgetsResource} class with an accept header of \code{text/html; q=1, application/widgets+xml; q=0.8} will result in a call to method \code{getAsHtml} instead of \code{getAsXML} based on the value of q. 
 
-A server can also indicate media type preference using the qs parameter; server preference is only examined when multiple media types are accepted by a client {\em with the same q-value}. Consider the following example:
+A server can also indicate media type quality using the qs parameter. Consider the following example:
 
 \begin{listing}{1}
 @Path("widgets2")
@@ -314,7 +314,7 @@ public class WidgetsResource2 {
 }
 \end{listing}
 
-Suppose a client issues a \code{GET} request with an accept header of \code{application/*; q=0.5, text/html}. Based on this request, the server determines that both \code{application/xml} and \code{application/json} are equally preferred by the client with a q-value of 0.5. By specifying a server relative quality factor as part of the \Produces\ annotation, it is possible to control which response media type to select:
+Suppose a client issues a \code{GET} request with an accept header of \code{application/*; q=0.5, text/html}. Based on this request, the server determines that both \code{application/xml} and \code{application/json} are equally preferred by the client with a q-value of 0.5. By specifying a server quality factor as part of the \Produces\ annotation, it is possible to control which response media type to select:
 
 \begin{listing}{1}
 @Path("widgets2")
@@ -327,7 +327,7 @@ public class WidgetsResource2 {
 }
 \end{listing}
 
-With the updated value for \Produces\ in this example, and in response to a \code{GET} request with an accept header that includes \code{application/*; q=0.5}, JAX-RS implementations are REQUIRED to select the media type \code{application/xml} given its higher qs-value. Note that qs-values, just like q-values, are relative and as such are only comparable to other qs-values within the same \Produces\ annotation instance. For more information see Section~\ref{determine_response_type}.
+With the updated value for \Produces\ in this example, and in response to a \code{GET} request with an accept header that includes \code{application/*; q=0.5}, JAX-RS implementations are REQUIRED to select the media type \code{application/xml} given its higher qs-value. Note that qs-values are multiplied with the q-value to determine if this media type is the most preferred. This allows for the behaviour as shown in the first example of \href{https://tools.ietf.org/html/rfc7231#section-5.3.2}{RFC 7231, Section 5.3.2}. For more information on media type selection see Section~\ref{determine_response_type}.
 
 \section{Annotation Inheritance}
 \label{annotationinheritance}
@@ -492,9 +492,9 @@ Note that q and qs are not matched, but simply combined in the resulting media t
 We write $\mbox{$n_1$/$m_1$;q=$v_1$;qs=$v_1'$;d=$v_1''$} \ge \mbox{$n_2$/$m_2$;q=$v_2$;qs=$v_2'$;d=$v_2''$}$ if one of these ordered conditions holds:
 \begin{enumerate}
 \item $\mbox{$n_1$/$m_1$} \succ \mbox{$n_2$/$m_2$}$ where the partial order $\succ$ is defined as $\mbox{$n$/$m$} \succ \mbox{$n$/*} \succ \mbox{*/*}$, 
-\item $\mbox{$n_2$/$m_2$} \nsucc \mbox{$n_1$/$m_1$}$ and $v_1 > v_2$, 
-\item $\mbox{$n_2$/$m_2$} \nsucc \mbox{$n_1$/$m_1$}$ and $v_1 = v_2$ and $v_1' > v_2'$.
-\item $\mbox{$n_2$/$m_2$} \nsucc \mbox{$n_1$/$m_1$}$ and $v_1 = v_2$ and $v_1' = v_2'$ and $v_1'' \le v_2''$.
+\item $\mbox{$n_2$/$m_2$} \nsucc \mbox{$n_1$/$m_1$}$ and $v_1 \cdot v_1' > v_2 \cdot v_2'$, 
+\item $\mbox{$n_2$/$m_2$} \nsucc \mbox{$n_1$/$m_1$}$ and $v_1 \cdot v_1' = v_2 \cdot v_2'$ and $v_1 > v_2$.
+\item $\mbox{$n_2$/$m_2$} \nsucc \mbox{$n_1$/$m_1$}$ and $v_1 \cdot v_1' = v_2 \cdot v_2'$ and $v_1 = v_2$ and $v_1'' \le v_2''$.
 \end{enumerate}
 Note that $\ge$ is a total order even though $\succ$ is a partial order. For example, the following holds $\mbox{text/html;q=1.0;qs=0.7;d=0} \ge \mbox{application/xml;q=1.0;qs=0.2;d=0}$ even though $\mbox{text/html}$ is incomparable to $\mbox{application/xml}$ according to $\succ$. Additionally, it is possible under $\ge$ for two types to be equal even though they are not identical~\footnoteremember{equality}{E.g.,  $\mbox{text/html;q=1.0;qs=0.7;d=0} \ge \mbox{application/xml;q=1.0;qs=0.7;d=0}$ and $\mbox{application/xml;q=1.0;qs=0.7;d=0} \ge \mbox{text/html;q=1.0;qs=0.7;d=0}$.}. For convenience, we defined $p \ge \bottom$ for every media type $p$.
 
@@ -603,7 +603,7 @@ In many cases it is not possible to statically determine the media type of a res
 
 \item If $M = \{\}$ then generate a \code{NotAcceptableException} (406 status) and no entity. The exception MUST be processed as described in Section \ref{method_exc}. Finish.
 
-\item Sort $M$ in descending order, with a primary key of specificity ($\mbox{n/m} > \mbox{n/*} > \mbox{*/*}$), a secondary key of q-value and a tertiary key of qs-value.
+\item Sort $M$ in descending order, with a primary key of specificity ($\mbox{n/m} > \mbox{n/*} > \mbox{*/*}$), a secondary key of the product of q and qs ($\mbox{q-value} \cdot \mbox{qs-value}$), and a tertiary key of q-value.
 
 \item For each member of $M, m$:
 \begin{itemize}
